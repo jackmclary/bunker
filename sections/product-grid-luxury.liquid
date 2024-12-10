@@ -1,0 +1,103 @@
+{% comment %}
+  sections/product-grid.liquid
+  Implements a luxury-style product grid with hover effects
+{% endcomment %}
+
+{{ 'product-grid-luxury.css' | asset_url | stylesheet_tag }}
+
+<div class="product-grid" data-columns="4">
+  {%- for product in collection.products -%}
+    <div class="product-grid__item" data-product-id="{{ product.id }}">
+      <div class="product-grid__image-wrapper">
+        {% comment %}
+          <button class="wishlist-button" aria-label="Add to wishlist">
+            {% render 'icon-bookmark' %}
+          </button>
+        {% endcomment %}
+        {% if product.featured_media %}
+          <a href="{{ product.url }}" class="product-grid__link">
+            <div class="product-grid__image-container">
+              <img
+                srcset="
+                  {%- if product.featured_media.width >= 165 -%}{{ product.featured_media | image_url: width: 165 }} 165w,{%- endif -%}
+                  {%- if product.featured_media.width >= 360 -%}{{ product.featured_media | image_url: width: 360 }} 360w,{%- endif -%}
+                  {%- if product.featured_media.width >= 533 -%}{{ product.featured_media | image_url: width: 533 }} 533w,{%- endif -%}
+                  {%- if product.featured_media.width >= 720 -%}{{ product.featured_media | image_url: width: 720 }} 720w,{%- endif -%}
+                "
+                src="{{ product.featured_media | image_url: width: 533 }}"
+                sizes="(min-width: 1200px) 25vw, (min-width: 768px) 33vw, 50vw"
+                alt="{{ product.featured_media.alt | escape }}"
+                loading="lazy"
+                width="{{ product.featured_media.width }}"
+                height="{{ product.featured_media.height }}"
+                class="product-grid__image"
+              >
+
+              {% if product.media[1] %}
+                <img
+                  srcset="
+                    {%- if product.media[1].width >= 165 -%}{{ product.media[1] | image_url: width: 165 }} 165w,{%- endif -%}
+                    {%- if product.media[1].width >= 360 -%}{{ product.media[1] | image_url: width: 360 }} 360w,{%- endif -%}
+                    {%- if product.media[1].width >= 533 -%}{{ product.media[1] | image_url: width: 533 }} 533w,{%- endif -%}
+                    {%- if product.media[1].width >= 720 -%}{{ product.media[1] | image_url: width: 720 }} 720w,{%- endif -%}
+                  "
+                  src="{{ product.media[1] | image_url: width: 533 }}"
+                  sizes="(min-width: 1200px) 25vw, (min-width: 768px) 33vw, 50vw"
+                  alt="{{ product.media[1].alt | escape }}"
+                  loading="lazy"
+                  width="{{ product.media[1].width }}"
+                  height="{{ product.media[1].height }}"
+                  class="product-grid__image product-grid__image--hover"
+                >
+              {% endif %}
+            </div>
+          </a>
+        {% endif %}
+      </div>
+
+      <div class="product-grid__info">
+        <h3 class="product-grid__title">
+          <a href="{{ product.url }}">{{ product.title | upcase }}</a>
+        </h3>
+
+        <div class="product-grid__price">
+          {% render 'price', product: product %}
+        </div>
+
+        <div class="product-grid__sizes">
+          {%- for variant in product.variants -%}
+            {% if variant.available %}
+              <span class="size-indicator" data-size="{{ variant.title }}"></span>
+            {% endif %}
+          {%- endfor -%}
+        </div>
+      </div>
+    </div>
+  {%- endfor -%}
+</div>
+
+{% schema %}
+{
+  "name": "Product Grid",
+  "settings": [
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "label": "Number of columns on desktop",
+      "min": 2,
+      "max": 4,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "columns_mobile",
+      "label": "Number of columns on mobile",
+      "min": 1,
+      "max": 2,
+      "step": 1,
+      "default": 2
+    }
+  ]
+}
+{% endschema %}

@@ -37,10 +37,12 @@
 {%- endstyle -%}
 
 <div class="section-{{ section.id }}-padding gradient color-{{ section.settings.color_scheme }}">
+  {{ 'product-grid-luxury.css' | asset_url | stylesheet_tag }}
   {%- paginate collection.products by section.settings.products_per_page -%}
-    {% comment %} Sort is the first tabbable element when filter type is vertical {% endcomment %}
+    {% comment %} Preserve existing sorting functionality {% endcomment %}
     {%- if section.settings.enable_sorting and section.settings.filter_type == 'vertical' -%}
       <facet-filters-form class="facets facets-vertical-sort page-width small-hide">
+        <!-- Keep existing sorting form unchanged -->
         <form class="facets-vertical-form" id="FacetSortForm">
           <div class="facet-filters sorting caption">
             <div class="facet-filters__field">
@@ -100,6 +102,8 @@
     <div class="{% if section.settings.filter_type == 'vertical' %} facets-vertical page-width{% endif %}">
       {{ 'component-facets.css' | asset_url | stylesheet_tag }}
       <script src="{{ 'facets.js' | asset_url }}" defer="defer"></script>
+
+      {% comment %} Maintain filtering functionality {% endcomment %}
       {%- if section.settings.enable_filtering or section.settings.enable_sorting -%}
         <aside
           aria-labelledby="verticalTitle"
@@ -126,6 +130,7 @@
       >
         {%- if collection.products.size == 0 -%}
           <div class="collection collection--empty page-width" id="product-grid" data-id="{{ section.id }}">
+            <!-- Keep existing empty collection messaging -->
             <div class="loading-overlay gradient"></div>
             <div class="title-wrapper center">
               <h2 class="title title--primary">
@@ -143,45 +148,161 @@
             class="collection{% if section.settings.filter_type != 'vertical' %} page-width{% endif %}"
           >
             <div class="loading-overlay gradient"></div>
-            <ul
-              id="product-grid"
-              data-id="{{ section.id }}"
-              class="
-                grid product-grid grid--{{ section.settings.columns_mobile }}-col-tablet-down
-                grid--{{ section.settings.columns_desktop }}-col-desktop
-                {% if section.settings.quick_add == 'bulk' %} collection-quick-add-bulk{% endif %}
-              "
-            >
-              {% assign skip_card_product_styles = false %}
-              {%- for product in collection.products -%}
-                {% assign lazy_load = false %}
-                {%- if forloop.index > 2 -%}
-                  {%- assign lazy_load = true -%}
-                {%- endif -%}
-                <li
-                  class="grid__item{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}"
-                  {% if settings.animations_reveal_on_scroll %}
-                    data-cascade
-                    style="--animation-order: {{ forloop.index }};"
-                  {% endif %}
-                >
-                  {% render 'card-product',
-                    card_product: product,
-                    media_aspect_ratio: section.settings.image_ratio,
-                    image_shape: section.settings.image_shape,
-                    show_secondary_image: section.settings.show_secondary_image,
-                    show_vendor: section.settings.show_vendor,
-                    show_rating: section.settings.show_rating,
-                    lazy_load: lazy_load,
-                    skip_styles: skip_card_product_styles,
-                    quick_add: section.settings.quick_add,
-                    section_id: section.id
-                  %}
-                </li>
-                {%- assign skip_card_product_styles = true -%}
-              {%- endfor -%}
-            </ul>
 
+            {% comment %} Implement conditional luxury grid layout {% endcomment %}
+            {% if settings.card_style == 'luxury' %}
+              <div
+                class="product-grid"
+                data-id="{{ section.id }}"
+                style="--columns-desktop: {{ section.settings.columns_desktop }}; --columns-mobile: {{ section.settings.columns_mobile }}"
+                {% if settings.animations_reveal_on_scroll %}
+                  data-cascade
+                {% endif %}
+              >
+                {%- for product in collection.products -%}
+                  <div
+                    class="product-grid__item{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}"
+                    {% if settings.animations_reveal_on_scroll %}
+                      data-cascade
+                      style="--animation-order: {{ forloop.index }};"
+                    {% endif %}
+                  >
+                    <div
+                      class="product-grid__image-wrapper"
+                      style="{% if settings.luxury_image_ratio == 'portrait' %}--aspect-ratio: 0.8{% else %}--aspect-ratio: 1{% endif %}"
+                    >
+                      {% comment %} Wishlist button integration {% endcomment %}
+                      {% if settings.luxury_hover_effect %}
+                        <button class="wishlist-button" aria-label="Add to wishlist">
+                          {% render 'icon-bookmark' %}
+                        </button>
+                      {% endif %}
+
+                      {% if product.featured_media %}
+                        <a href="{{ product.url }}" class="product-grid__link">
+                          <div class="product-grid__image-container">
+                            {% comment %}
+                              Calculate image dimensions based on luxury_image_ratio setting
+                              Portrait ratio (4:5) = 0.8
+                              Square ratio (1:1) = 1.0
+                              We'll use a base width of 533px and adjust height accordingly
+                            {% endcomment %}
+                            {% assign base_width = 533 %}
+                            {% if settings.luxury_image_ratio == 'portrait' %}
+                              {% assign image_height = base_width | times: 1.25 | round %}
+                            {% else %}
+                              {% assign image_height = base_width %}
+                            {% endif %}
+
+                            {% comment %} Primary product image with calculated dimensions {% endcomment %}
+                            <img
+                              srcset="
+                                {%- if product.featured_media.width >= 165 -%}{{ product.featured_media | image_url: width: 165 }} 165w,{%- endif -%}
+                                {%- if product.featured_media.width >= 360 -%}{{ product.featured_media | image_url: width: 360 }} 360w,{%- endif -%}
+                                {%- if product.featured_media.width >= 533 -%}{{ product.featured_media | image_url: width: 533 }} 533w,{%- endif -%}
+                                {%- if product.featured_media.width >= 720 -%}{{ product.featured_media | image_url: width: 720 }} 720w,{%- endif -%}
+                              "
+                              src="{{ product.featured_media | image_url: width: base_width }}"
+                              sizes="(min-width: 1200px) 25vw, (min-width: 768px) 33vw, 50vw"
+                              alt="{{ product.featured_media.alt | escape }}"
+                              loading="{% if forloop.index > 2 %}lazy{% else %}eager{% endif %}"
+                              width="{{ base_width }}"
+                              height="{{ image_height }}"
+                              class="product-grid__image"
+                            >
+
+                            {% comment %}
+                              Secondary hover image with matching dimensions
+                              Only show if we have a second image and hover effects are enabled
+                            {% endcomment %}
+                            {% if product.media[1] and settings.luxury_hover_effect %}
+                              <img
+                                srcset="
+                                  {%- if product.media[1].width >= 165 -%}{{ product.media[1] | image_url: width: 165 }} 165w,{%- endif -%}
+                                  {%- if product.media[1].width >= 360 -%}{{ product.media[1] | image_url: width: 360 }} 360w,{%- endif -%}
+                                  {%- if product.media[1].width >= 533 -%}{{ product.media[1] | image_url: width: 533 }} 533w,{%- endif -%}
+                                  {%- if product.media[1].width >= 720 -%}{{ product.media[1] | image_url: width: 720 }} 720w,{%- endif -%}
+                                "
+                                src="{{ product.media[1] | image_url: width: base_width }}"
+                                sizes="(min-width: 1200px) 25vw, (min-width: 768px) 33vw, 50vw"
+                                alt="{{ product.media[1].alt | escape }}"
+                                loading="lazy"
+                                width="{{ base_width }}"
+                                height="{{ image_height }}"
+                                class="product-grid__image product-grid__image--hover"
+                              >
+                            {% endif %}
+                          </div>
+                        </a>
+                      {% endif %}
+                    </div>
+
+                    <div class="product-grid__info">
+                      {% comment %} Product title and pricing {% endcomment %}
+                      <h3 class="product-grid__title">
+                        <a href="{{ product.url }}">{{ product.title | upcase }}</a>
+                      </h3>
+
+                      <div class="product-grid__price">
+                        {% render 'price', product: product %}
+                      </div>
+
+                      {% if settings.luxury_size_dots %}
+                        <div class="product-grid__sizes">
+                          {%- for variant in product.variants -%}
+                            {% if variant.available %}
+                              <span class="size-indicator" data-size="{{ variant.title }}"></span>
+                            {% endif %}
+                          {%- endfor -%}
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                {%- endfor -%}
+              </div>
+            {% else %}
+              {% comment %} Default Dawn product grid {% endcomment %}
+              <ul
+                id="product-grid"
+                data-id="{{ section.id }}"
+                class="
+                  grid product-grid grid--{{ section.settings.columns_mobile }}-col-tablet-down
+                  grid--{{ section.settings.columns_desktop }}-col-desktop
+                  {% if section.settings.quick_add == 'bulk' %} collection-quick-add-bulk{% endif %}
+                "
+              >
+                {% assign skip_card_product_styles = false %}
+                {%- for product in collection.products -%}
+                  {% assign lazy_load = false %}
+                  {%- if forloop.index > 2 -%}
+                    {%- assign lazy_load = true -%}
+                  {%- endif -%}
+                  <li
+                    class="grid__item{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}"
+                    {% if settings.animations_reveal_on_scroll %}
+                      data-cascade
+                      style="--animation-order: {{ forloop.index }};"
+                    {% endif %}
+                  >
+                    {% render 'card-product',
+                      card_product: product,
+                      media_aspect_ratio: section.settings.image_ratio,
+                      image_shape: section.settings.image_shape,
+                      show_secondary_image: section.settings.show_secondary_image,
+                      show_vendor: section.settings.show_vendor,
+                      show_rating: section.settings.show_rating,
+                      lazy_load: lazy_load,
+                      skip_styles: skip_card_product_styles,
+                      quick_add: section.settings.quick_add,
+                      section_id: section.id
+                    %}
+                  </li>
+                  {%- assign skip_card_product_styles = true -%}
+                {%- endfor -%}
+              </ul>
+            {% endif %}
+
+            {% comment %} Maintain pagination {% endcomment %}
             {%- if paginate.pages > 1 -%}
               {% render 'pagination', paginate: paginate, anchor: '' %}
             {%- endif -%}
@@ -198,8 +319,13 @@
 {% schema %}
 {
   "name": "t:sections.main-collection-product-grid.name",
-  "class": "section",
   "settings": [
+    {
+      "type": "checkbox",
+      "id": "enable_luxury_grid",
+      "label": "Enable Luxury Grid Layout",
+      "default": false
+    },
     {
       "type": "range",
       "id": "products_per_page",

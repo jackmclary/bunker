@@ -53,7 +53,28 @@
           "options__2": {
             "label": "Card"
           },
+             "options__3": {
+            "label": "Luxury Grid"
+          },
           "label": "Style"
+        },  "luxury_header": {
+          "content": "Luxury Grid Settings",
+          "info": "These settings apply when using the luxury grid style"
+        },
+        "luxury_image_ratio": {
+          "label": "Image Aspect Ratio",
+          "options__1": {
+            "label": "Square (1:1)"
+          },
+          "options__2": {
+            "label": "Portrait (4:5)"
+          }
+        },
+        "luxury_hover_effect": {
+          "label": "Enable hover effects"
+        },
+        "luxury_size_dots": {
+          "label": "Show size availability dots"
         }
       }
     },

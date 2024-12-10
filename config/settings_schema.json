@@ -500,11 +500,47 @@
           {
             "value": "card",
             "label": "t:settings_schema.cards.settings.style.options__2.label"
-          }
+          },  {
+      "value": "luxury",
+      "label": "t:settings_schema.cards.settings.style.options__3.label"
+    }
         ],
         "default": "standard",
         "label": "t:settings_schema.cards.settings.style.label"
       },
+      {
+  "type": "header",
+  "content": "t:settings_schema.cards.settings.luxury_header.content",
+  "info": "t:settings_schema.cards.settings.luxury_header.info"
+},
+{
+  "type": "select",
+  "id": "luxury_image_ratio",
+  "options": [
+    {
+      "value": "square",
+      "label": "t:settings_schema.cards.settings.luxury_image_ratio.options__1.label"
+    },
+    {
+      "value": "portrait",
+      "label": "t:settings_schema.cards.settings.luxury_image_ratio.options__2.label"
+    }
+  ],
+  "default": "portrait",
+  "label": "t:settings_schema.cards.settings.luxury_image_ratio.label"
+},
+{
+  "type": "checkbox",
+  "id": "luxury_hover_effect",
+  "default": true,
+  "label": "t:settings_schema.cards.settings.luxury_hover_effect.label"
+},
+{
+  "type": "checkbox",
+  "id": "luxury_size_dots",
+  "default": true,
+  "label": "t:settings_schema.cards.settings.luxury_size_dots.label"
+},
       {
         "type": "range",
         "id": "card_image_padding",
@@ -624,6 +660,7 @@
   {
     "name": "t:settings_schema.collection_cards.name",
     "settings": [
+
       {
         "type": "select",
         "id": "collection_card_style",
